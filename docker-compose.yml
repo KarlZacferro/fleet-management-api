@@ -1,0 +1,23 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: fleet-sqlserver
+    ports:
+      - "1434:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=SuaSenhaForte123
+    networks:
+      - fleet-network
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: fleet-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - fleet-network
+
+networks:
+  fleet-network:
+    driver: bridge

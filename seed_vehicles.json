@@ -1,0 +1,23 @@
+[
+  {
+    "license_plate": "ABC-1234",
+    "chassis": "9BW ZZZ 37Z 2T 000001",
+    "renavam": "12345678901",
+    "year": 2022,
+    "model_name": "Gol"
+  },
+  {
+    "license_plate": "XYZ-5678",
+    "chassis": "9BW ZZZ 37Z 2T 000002",
+    "renavam": "09876543210",
+    "year": 2023,
+    "model_name": "Polo"
+  },
+  {
+    "license_plate": "DEF-9012",
+    "chassis": "9BW ZZZ 37Z 2T 000003",
+    "renavam": "11223344556",
+    "year": 2021,
+    "model_name": "Corolla"
+  }
+]
