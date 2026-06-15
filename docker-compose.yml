@@ -1,4 +1,29 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fleet-app
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=sqlserver
+      - DB_PORT=1433
+      - DB_USERNAME=sa
+      - DB_PASSWORD=SuaSenhaForte123
+      - DB_DATABASE=fleet_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_TTL=3600
+      - MONGODB_URI=mongodb://mongodb:27017/fleet_audit
+      - JWT_SECRET=fleet_jwt_secret_2025
+    depends_on:
+      - sqlserver
+      - redis
+      - mongodb
+    networks:
+      - fleet-network
+
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: fleet-sqlserver
@@ -18,6 +43,19 @@ services:
     networks:
       - fleet-network
 
+  mongodb:
+    image: mongo:6.0
+    container_name: fleet-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - fleet-network
+
 networks:
   fleet-network:
     driver: bridge
+
+volumes:
+  mongodb_data:
