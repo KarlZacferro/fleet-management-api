@@ -1,26 +1,39 @@
+// Polyfill para o módulo 'crypto' no Node.js 18.
+// Necessário para o TypeORM e para os testes E2E funcionarem corretamente.
+import * as crypto from 'crypto';
+if (!global.crypto) {
+  (global as any).crypto = crypto;
+}
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { MongooseModule } from '@nestjs/mongoose';
-import { APP_INTERCEPTOR } from '@nestjs/core'; // Adicionado para o Interceptor
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { redisStore } from 'cache-manager-redis-yet';
-
-// Módulos de Negócio
 import { BrandsModule } from './brands/brands.module';
 import { ModelsModule } from './models/models.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-
-// Imports para o Logging
-import { InteractionLog, InteractionLogSchema } from './common/schemas/log.schema';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { AuditModule } from './audit/audit.module';
+import { AuditInterceptor } from './audit/interceptors/audit.interceptor';
 
 @Module({
   imports: [
-    // Configuração de Variáveis de Ambiente
     ConfigModule.forRoot({ isGlobal: true }),
+
+    // Banco não relacional: MongoDB via Mongoose (Auditoria)
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri:
+          configService.get<string>('MONGODB_URI') ||
+          'mongodb://127.0.0.1:27017/fleet_audit',
+      }),
+    }),
 
     // Conexão com SQL Server (Dados Principais)
     TypeOrmModule.forRootAsync({
@@ -39,21 +52,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
       }),
     }),
 
-    // Conexão Global com MongoDB
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_URI') || 'mongodb://localhost:27017/fleet_management',
-      }),
-    }),
-
-    // Configuração da Coleção de Logs no MongoDB
-    MongooseModule.forFeature([
-      { name: InteractionLog.name, schema: InteractionLogSchema }
-    ]),
-
-    // Configuração do Cache (Redis)
+    // Configuração do Cache com Redis
     CacheModule.registerAsync({
       isGlobal: true,
       imports: [ConfigModule],
@@ -70,19 +69,23 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
           });
           return { store };
         } catch (error) {
-          console.warn('Redis indisponível. Usando cache em memória.');
-          return {}; 
+          return {}; // Fallback para memória se o Redis falhar
         }
       },
     }),
 
-    BrandsModule, ModelsModule, VehiclesModule, UsersModule, AuthModule,
+    BrandsModule,
+    ModelsModule,
+    VehiclesModule,
+    UsersModule,
+    AuthModule,
+    AuditModule,
   ],
   providers: [
-    // Registra o Interceptor Globalmente para capturar todas as rotas
+    // Registra o AuditInterceptor globalmente para capturar todas as requisições
     {
       provide: APP_INTERCEPTOR,
-      useClass: LoggingInterceptor,
+      useClass: AuditInterceptor,
     },
   ],
 })

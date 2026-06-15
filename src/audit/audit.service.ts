@@ -36,18 +36,16 @@ export class AuditService {
 
   /**
    * Persiste um novo registro de auditoria no MongoDB.
-   * Erros de persistência são logados mas não propagados para não
-   * impactar o fluxo principal da aplicação.
+   * Agora retorna uma Promise<void> para permitir que o chamador aguarde a persistência.
    */
   async log(data: CreateAuditLogDto): Promise<void> {
     try {
-      // LOG DE TESTE: Avisa que a auditoria capturou a ação
       console.log(`[Auditoria] Capturado: ${data.method} ${data.route} - Status: ${data.statusCode}`);
       
       const entry = new this.auditLogModel(data);
+     
       await entry.save();
       
-      // LOG DE SUCESSO: Confirma que o MongoDB gravou o dado
       console.log(`[Auditoria] ✅ Gravado com sucesso no MongoDB!`);
     } catch (error: any) {
       this.logger.error(
@@ -57,31 +55,15 @@ export class AuditService {
     }
   }
 
-  /**
-   * Retorna todos os registros de auditoria, ordenados do mais recente ao mais antigo.
-   * Útil para consultas administrativas e demonstração.
-   */
   async findAll(): Promise<AuditLog[]> {
     return this.auditLogModel.find().sort({ timestamp: -1 }).exec();
   }
 
-  /**
-   * Retorna os registros de auditoria filtrados por recurso (ex: 'vehicles').
-   */
   async findByResource(resource: string): Promise<AuditLog[]> {
-    return this.auditLogModel
-      .find({ resource })
-      .sort({ timestamp: -1 })
-      .exec();
+    return this.auditLogModel.find({ resource }).sort({ timestamp: -1 }).exec();
   }
 
-  /**
-   * Retorna os registros de auditoria de um usuário específico.
-   */
   async findByUser(userId: string): Promise<AuditLog[]> {
-    return this.auditLogModel
-      .find({ userId })
-      .sort({ timestamp: -1 })
-      .exec();
+    return this.auditLogModel.find({ userId }).sort({ timestamp: -1 }).exec();
   }
 }

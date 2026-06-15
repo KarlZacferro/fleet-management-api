@@ -1,36 +1,40 @@
-import * as crypto from 'crypto';
-// Polyfill para resolver o erro 'crypto is not defined' no Node 18
-if (!global.crypto) {
-  (global as any).crypto = crypto;
-}
-
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest'; // MUDANÇA AQUI: Importação padrão
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import request from 'supertest';
 import { AppModule } from './../src/app.module';
+import { DataSource } from 'typeorm';
+import { getModelToken } from '@nestjs/mongoose';
+import { AuditLog } from './../src/audit/schemas/audit-log.schema';
 
-describe('AppController (e2e)', () => {
+describe('App (e2e)', () => {
   let app: INestApplication;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api/v1'); 
+    app.setGlobalPrefix('api/v1');
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
     await app.init();
-  });
+  }, 30000);
 
-  it('/api/v1 (GET)', () => {
-    // Agora o 'request' pode ser chamado 
-    return request(app.getHttpServer())
-      .get('/api/v1')
-      .expect(200)
-      .expect('Hello World!');
-  });
-
+  
   afterAll(async () => {
-    await app.close();
+    if (app) {
+      
+      await app.close();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  });
+
+  it('/api/v1/users (GET) - Deve retornar 200 OK', async () => {
+    const response = await request(app.getHttpServer()).get('/api/v1/users');
+    
+    
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.body)).toBe(true);
   });
 });

@@ -143,6 +143,7 @@ npm run test
 # Executar testes E2E (End-to-End)
 npm run test:e2e
 
+
 # Verificar cobertura de testes
 npm run test:cov
 ```
