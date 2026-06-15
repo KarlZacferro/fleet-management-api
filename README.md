@@ -93,6 +93,54 @@ npm run test:cov
 
 A API segue o padrão RESTful com prefixo `/api/v1`.
 
+| Método | Rota | Descrição |
+| :--- | :--- | :--- |
+| `POST` | `/auth/login` | Autenticação e geração de Token |
+| `POST` | `/users` | Cadastro de novo administrador |
+| `GET` | `/vehicles` | Listagem de frota (com Cache Redis) |
+| `POST` | `/brands` | Cadastro de fabricante |
+| `POST` | `/models` | Cadastro de modelo vinculado a marca |
+
+## 📊 Estrutura de Dados
+
+### Relacionamentos (Diagrama ER)
+
+```mermaid
+erDiagram
+    USERS ||--o{ BRANDS : "cadastra"
+    USERS ||--o{ MODELS : "cadastra"
+    USERS ||--o{ VEHICLES : "cadastra"
+    BRANDS ||--o{ MODELS : "possui"
+    MODELS ||--o{ VEHICLES : "possui"
+
+    USERS {
+        uuid id PK
+        string email
+        string password
+    }
+    BRANDS {
+        uuid id PK
+        string name
+        uuid created_by FK
+    }
+    MODELS {
+        uuid id PK
+        string name
+        uuid brand_id FK
+        uuid created_by FK
+    }
+    VEHICLES {
+        uuid id PK
+        string license_plate
+        uuid model_id FK
+        uuid created_by FK
+    }
+```
+
+### Regras de Negócio
+-   **Hierarquia:** Um Veículo obrigatoriamente pertence a um Modelo, que por sua vez pertence a uma Marca.
+-   **Segurança:** Todas as rotas (exceto Login e Cadastro de Usuário) exigem autenticação via Bearer Token.
+
 ### Entidades Principais:
 -   **Brands (Marcas):** Fabricantes dos veículos.
 -   **Models (Modelos):** Modelos vinculados a uma marca específica.
@@ -109,4 +157,5 @@ A API segue o padrão RESTful com prefixo `/api/v1`.
 -   ✅ **Testes:** Cobertura de serviços e validações de negócio.
 
 ---
-*Desenvolvido por Karlisson Ferreira - 2026*
+*Desenvolvido para demonstração técnica de competências em Backend Engineering.*
+
