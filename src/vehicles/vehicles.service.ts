@@ -45,6 +45,25 @@ export class VehiclesService {
 
   async update(id: string, updateVehicleDto: any): Promise<Vehicle> {
     const vehicle = await this.findOne(id);
+
+    // Se estiver tentando atualizar o modelo, valida se o novo modelo existe
+    if (updateVehicleDto.model_id && updateVehicleDto.model_id !== vehicle.model_id) {
+      const model = await this.modelRepository.findOne({ where: { id: updateVehicleDto.model_id } });
+      if (!model) {
+        throw new BadRequestException('O novo modelo informado (model_id) não existe.');
+      }
+    }
+
+    // Se estiver tentando atualizar a placa, valida se a nova placa já não pertence a outro veículo
+    if (updateVehicleDto.license_plate && updateVehicleDto.license_plate !== vehicle.license_plate) {
+      const existingVehicle = await this.vehicleRepository.findOne({ 
+        where: { license_plate: updateVehicleDto.license_plate } 
+      });
+      if (existingVehicle) {
+        throw new BadRequestException('Já existe outro veículo cadastrado com esta placa.');
+      }
+    }
+
     const updated = this.vehicleRepository.merge(vehicle, updateVehicleDto);
     return await this.vehicleRepository.save(updated);
   }

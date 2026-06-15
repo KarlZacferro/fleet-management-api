@@ -1,23 +1,20 @@
-import { IsString, IsNotEmpty, IsEmail, MinLength } from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 
-// Objeto de transferência de dados para criação de usuários
 export class CreateUserDto {
-  // Nome curto ou apelido do usuário
   @IsString()
-  @IsNotEmpty({ message: 'O nickname é obrigatório' })
-  nickname: string;
+  @IsNotEmpty({ message: 'O apelido (nickname) é obrigatório' })
+  nickname!: string;
 
-  // Nome completo do usuário
   @IsString()
   @IsNotEmpty({ message: 'O nome completo é obrigatório' })
-  name: string;
+  name!: string;
 
-  // Email válido para autenticação
-  @IsEmail({}, { message: 'O email deve ser válido' })
-  email: string;
+  @IsEmail({}, { message: 'O e-mail informado é inválido' })
+  @IsNotEmpty({ message: 'O e-mail é obrigatório' })
+  email!: string;
 
-  // Senha com tamanho mínimo para segurança
   @IsString()
-  @MinLength(6, { message: 'A senha deve ter pelo menos 6 caracteres' })
-  password: string;
+  @IsNotEmpty({ message: 'A senha é obrigatória' })
+  @MinLength(6, { message: 'A senha deve ter no mínimo 6 caracteres' })
+  password!: string;
 }

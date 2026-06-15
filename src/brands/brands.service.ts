@@ -12,9 +12,12 @@ export class BrandsService {
     private readonly brandRepository: Repository<Brand>,
   ) {}
 
-  // Usando o DTO, o TypeScript sabe que estamos criando apenas UMA marca
-  async create(createBrandDto: CreateBrandDto): Promise<Brand> {
-    const brand = this.brandRepository.create(createBrandDto);
+  // Ajustado para receber o userId e realizar a auditoria
+  async create(createBrandDto: CreateBrandDto, userId: string): Promise<Brand> {
+    const brand = this.brandRepository.create({
+      ...createBrandDto,
+      created_by: userId, // Salva o ID do usuário que criou a marca
+    });
     return await this.brandRepository.save(brand);
   }
 
@@ -30,7 +33,6 @@ export class BrandsService {
     return brand;
   }
 
-  // Usando o UpdateBrandDto para garantir a tipagem na atualização
   async update(id: string, updateBrandDto: UpdateBrandDto): Promise<Brand> {
     const brand = await this.findOne(id);
     const updatedBrand = this.brandRepository.merge(brand, updateBrandDto);
