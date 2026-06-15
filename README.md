@@ -113,28 +113,6 @@ erDiagram
     BRANDS ||--o{ MODELS : "possui"
     MODELS ||--o{ VEHICLES : "possui"
 
-    USERS {
-        uuid id PK
-        string email
-        string password
-    }
-    BRANDS {
-        uuid id PK
-        string name
-        uuid created_by FK
-    }
-    MODELS {
-        uuid id PK
-        string name
-        uuid brand_id FK
-        uuid created_by FK
-    }
-    VEHICLES {
-        uuid id PK
-        string license_plate
-        uuid model_id FK
-        uuid created_by FK
-    }
 ```
 
 ### Regras de Negócio
